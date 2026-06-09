@@ -1,4 +1,5 @@
 #include <ncurses.h>
+#include <stdio.h>
 
 WINDOW *TopWin(int top_win_height, int max_x) {
   WINDOW *win_top = newwin(top_win_height, max_x, 0, 0);
@@ -44,6 +45,22 @@ WINDOW *RightWin(int top_win_height, int max_y, int max_x) {
   return win_right;
 }
 
+void ExecuteDotnetTest(WINDOW *windowToPrintAt) {
+  FILE *dotnetTestCommand = popen("cat ..", "r");
+
+  // First argument: where to put the line
+  // Second argument: How big can the line be
+  // Third argument: Input Stream
+  char line[256];
+  int row = 1;
+  while (fgets(line, sizeof(line), dotnetTestCommand) != NULL) {
+    mvwprintw(windowToPrintAt, row, 2, "%s", line);
+    wrefresh(windowToPrintAt);
+    row++;
+  }
+  pclose(dotnetTestCommand);
+}
+
 int main(void) {
   initscr();
   cbreak();
@@ -58,6 +75,8 @@ int main(void) {
   WINDOW *win_top = TopWin(TOP_WIN_HEIGHT, max_x);
   WINDOW *win_left = LeftWin(TOP_WIN_HEIGHT, max_y, max_x);
   WINDOW *win_right = RightWin(TOP_WIN_HEIGHT, max_y, max_x);
+
+  ExecuteDotnetTest(win_left);
 
   getch();
 
