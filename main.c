@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <stdio.h>
+#include <string.h>
 
 WINDOW *TopWin(int top_win_height, int max_x) {
   WINDOW *win_top = newwin(top_win_height, max_x, 0, 0);
@@ -45,14 +46,15 @@ WINDOW *RightWin(int top_win_height, int max_y, int max_x) {
   return win_right;
 }
 
-void ExecuteDotnetTest(WINDOW *windowToPrintAt) {
-  FILE *dotnetTestCommand = popen("cat ..", "r");
+void ExecuteDotnetTest(WINDOW *windowToPrintAt, int max_x, int max_y) {
+  FILE *dotnetTestCommand = popen("cat ~/Dotnet-Test-TUI/tests.txt", "r");
+
+  char line[4096];
+  int row = 1;
 
   // First argument: where to put the line
   // Second argument: How big can the line be
   // Third argument: Input Stream
-  char line[256];
-  int row = 1;
   while (fgets(line, sizeof(line), dotnetTestCommand) != NULL) {
     mvwprintw(windowToPrintAt, row, 2, "%s", line);
     wrefresh(windowToPrintAt);
@@ -76,9 +78,13 @@ int main(void) {
   WINDOW *win_left = LeftWin(TOP_WIN_HEIGHT, max_y, max_x);
   WINDOW *win_right = RightWin(TOP_WIN_HEIGHT, max_y, max_x);
 
-  ExecuteDotnetTest(win_left);
+  scrollok(win_left, true);
+  wrefresh(win_left);
 
-  getch();
+  ExecuteDotnetTest(win_left, max_x, max_y);
+
+  while (getch() != 'q')
+    ;
 
   delwin(win_top);
   delwin(win_left);
